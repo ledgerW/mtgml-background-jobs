@@ -1,0 +1,126 @@
+service: mtgml-global-data
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-python-requirements
+
+custom: ${file(../../serverless.common.yml):custom}
+
+package:
+  individually: true
+  exclude:
+    - data/**
+    - notebooks/**
+  include:
+    - ../../libs/**
+
+provider:
+  name: aws
+  runtime: python3.7
+  stage: prod
+  region: us-east-1
+  tracing:
+    lambda: true
+
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': ${self:custom.stage}-ApiGatewayRestApiId
+    restApiRootResourceId:
+      'Fn::ImportValue': ${self:custom.stage}-ApiGatewayRestApiRootResourceId
+
+  environment:
+    stage: ${self:custom.stage}
+    resources_stage: ${self:custom.resources_stage}
+    GLOBAL_DECKS_TABLE: ${self:custom.globalDecksTable}
+    GLOBAL_CARDS_TABLE: ${self:custom.globalCardsTable}
+    CARD_SEARCH_DOMAIN_ENDPOINT: ${self:custom.cardSearchDomainEndpoint}
+    CARDS_URL: 'https://api.scryfall.com/cards?page={}'
+    CARDS_PER_PAGE: 175
+    PAGES_PER_WORKER: 100
+    BATCH_LIMIT: 10
+
+  iamRoleStatements:
+    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+    - Effect: Allow
+      Action:
+        # Dynamo Table Actions
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:BatchWriteItem
+        # Dynamo Stream Actions
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:DescribeStream
+        - dynamodb:ListStreams
+        # Elasticsearch Actions
+        - es:ESHttpPost
+        - es:ESHttpPut
+        - es:ESHttpDelete
+        - es:ESHttpGet
+        - es:ESHttpHead
+        # Lambda Actions (for master to call worker)
+        - lambda:InvokeFunction
+      # Restrict our IAM role permissions to
+      # the specific table for the stage
+      Resource:
+        - 'Fn::ImportValue': GlobalDecksTableArn
+        - 'Fn::ImportValue': GlobalCardsTableArn
+        - 'Fn::ImportValue': CardSearchDomainArn
+        - "*"
+
+functions:
+  cards_master:
+    handler: update_global_cards.master
+    memorySize: 512
+    timeout: 900
+    layers:
+      - {Ref: PythonRequirementsLambdaLayer}
+    events:
+      - schedule: cron(0 6 ? * FRI *)
+      - http:
+          path: global_cards_master
+          method: get
+          cors: true
+          authorizer: aws_iam
+  cards_worker:
+    handler: update_global_cards.worker
+    memorySize: 512
+    timeout: 900
+    layers:
+      - {Ref: PythonRequirementsLambdaLayer}
+    events:
+      - http:
+          path: global_cards_worker
+          method: post
+          cors: true
+          authorizer: aws_iam
+  decks:
+    handler: update_global_decks.main
+    memorySize: 512
+    timeout: 900
+    layers:
+      - {Ref: PythonRequirementsLambdaLayer}
+    events:
+      - schedule: cron(0 6 ? * FRI *)
+      - http:
+          path: update_global_decks
+          method: get
+          cors: true
+          authorizer: aws_iam
+  sync_card_search:
+    handler: sync_card_search.main
+    memorySize: 512
+    timeout: 60
+    layers:
+      - {Ref: PythonRequirementsLambdaLayer}
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::ImportValue: GlobalCardsTableStreamArn

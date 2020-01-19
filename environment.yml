@@ -1,0 +1,25 @@
+name: mtgml
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - boto3
+  - aws-xray-sdk
+  - elasticsearch
+  - requests_aws4auth
+  - stripe
+  - pyarrow
+  - requests
+  - pandas
+  - numpy
+  - pytorch-cpu
+  - torchvision-cpu
+  - scikit-learn
+  - mlflow
+  - jupyterlab
+  - matplotlib
+  - pytest
+  - coverage
+  - pip

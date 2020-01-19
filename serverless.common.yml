@@ -1,0 +1,24 @@
+custom:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or fallsback to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  resources_stages:
+    prod: prod
+    dev: dev
+  resources_stage: ${self:custom.resources_stages.${self:custom.stage}, self:custom.resources_stages.prod}
+
+  # Set the table name here so we can use it while testing locally
+  globalDecksTable: global-decks
+  globalCardsTable: global-cards
+  cardSearchDomainEndpoint:
+    'Fn::ImportValue': CardSearchDomainEndpoint
+  pythonRequirements:
+    layer:
+      name: ${self:service}
+
+lambdaPolicyXRay:
+  Effect: Allow
+  Action:
+    - xray:PutTraceSegments
+    - xray:PutTelemetryRecords
+  Resource: "*"
