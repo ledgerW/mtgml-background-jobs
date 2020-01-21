@@ -71,10 +71,4 @@ def worker(event, context):
                 logger.info(page)
                 return failure({'status': False})
 
-            #try:
-            #    has_more = scryfall_to_elastic(domain, page_res)
-            #except:
-            #    logger.info(page)
-            #    return failure({'status': False})
-
     return success({'status': True})

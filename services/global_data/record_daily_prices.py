@@ -14,7 +14,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 from libs.response_lib import success, failure
-from libs.global_cards import scryfall_to_s3
+from libs.global_cards_lib import scryfall_to_s3
 
 
 CARDS_URL = os.environ['CARDS_URL']

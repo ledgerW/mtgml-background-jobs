@@ -8,7 +8,6 @@ dependencies:
   - boto3
   - aws-xray-sdk
   - elasticsearch
-  - requests_aws4auth
   - stripe
   - pyarrow
   - requests
@@ -17,9 +16,11 @@ dependencies:
   - pytorch-cpu
   - torchvision-cpu
   - scikit-learn
-  - mlflow
   - jupyterlab
   - matplotlib
   - pytest
   - coverage
   - pip
+  - pip:
+    - requests_aws4auth
+    - mlflow

@@ -2,4 +2,3 @@ aws-xray-sdk
 elasticsearch
 requests_aws4auth
 pandas
-pyarrow

@@ -21,6 +21,7 @@ node_modules/
 
 data/
 .ipynp_checkpoints/
+services/global_data/tmp/
 
 # Dependency directories
 node_modules

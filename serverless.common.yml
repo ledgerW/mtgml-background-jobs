@@ -10,6 +10,7 @@ custom:
   # Set the table name here so we can use it while testing locally
   globalDecksTable: global-decks
   globalCardsTable: global-cards
+  dailyPricesBucket: global-prices
   cardSearchDomainEndpoint:
     'Fn::ImportValue': CardSearchDomainEndpoint
   pythonRequirements:
