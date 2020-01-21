@@ -8,7 +8,6 @@ dependencies:
   - boto3
   - aws-xray-sdk
   - elasticsearch
-  - requests_aws4auth
   - stripe
   - pyarrow
   - requests
@@ -23,3 +22,5 @@ dependencies:
   - pytest
   - coverage
   - pip
+  - pip:
+    - requests_aws4auth

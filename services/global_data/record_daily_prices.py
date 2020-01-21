@@ -9,17 +9,17 @@ import requests
 import math
 from time import sleep
 import logging
+import pandas as pd
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 from libs.response_lib import success, failure
-from libs.global_cards import scryfall_to_dynamo, scryfall_to_elastic
+from libs.global_cards import scryfall_to_s3
 
 
 CARDS_URL = os.environ['CARDS_URL']
 CARDS_PER_PAGE = int(os.environ['CARDS_PER_PAGE'])
 PAGES_PER_WORKER = int(os.environ['PAGES_PER_WORKER'])
-BATCH_LIMIT = int(os.environ['DYNAMO_BATCH_LIMIT'])
 
 client = boto3.client('lambda')
 
@@ -40,7 +40,7 @@ def master(event, context):
     for pages in worker_pages:
         logger.info(pages)
         response = client.invoke(
-            FunctionName='mtgml-global-data-prod-cards_worker',
+            FunctionName='mtgml-global-data-prod-prices_worker',
             InvocationType='Event',
             Payload=json.dumps({"first": pages[0], "last": pages[1]}))
 
@@ -52,29 +52,33 @@ def worker(event, context):
     Trigger: http post from master
     Accept range of scryfall pages to collect from master,
     call each page,
-    then collect them and load to GLOBAL_CARDS_TABLE
+    then collect them and write to S3
     '''
-    table = os.environ['GLOBAL_CARDS_TABLE']
-    domain = os.environ['CARD_SEARCH_DOMAIN_ENDPOINT']
+    bucket = os.environ['PRICES_BUCKET']
     pages = event
+    keep_keys = ['id','name','prices']
+
 
     # Get cards from Scryfall
+    all_prices = pd.DataFrame()
     has_more = True
     for page in range(pages['first'], pages['last']):
-        page_res = requests.get(CARDS_URL.format(page))
         if has_more:
+            page_res = requests.get(CARDS_URL.format(page))
             sleep(0.1)
+            data = [{key: card[key] for key in keep_keys} for card in page_res.json()['data']]
+            for idx, card in enumerate(data):
+                data[idx]['usd'] = card['prices']['usd']
+                data[idx]['eur'] = card['prices']['eur']
+            price_df = pd.read_json(json.dumps(data), orient='records')\
+                .drop(columns=['prices'])
+            all_prices = pd.concat([all_prices, price_df], axis=0, ignore_index=True)
+            has_more = page_res.json()['has_more']
+    try:
+        status = scryfall_to_s3(bucket, pages['first'], all_prices)
+    except:
+        e = sys.exc_info()[0]
+        logger.info(e)
+        return failure({'status': False})
 
-            try:
-                has_more = scryfall_to_dynamo(table, page_res)
-            except:
-                logger.info(page)
-                return failure({'status': False})
-
-            #try:
-            #    has_more = scryfall_to_elastic(domain, page_res)
-            #except:
-            #    logger.info(page)
-            #    return failure({'status': False})
-
-    return success({'status': True})
+    return success({'status': status})

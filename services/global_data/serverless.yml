@@ -35,10 +35,11 @@ provider:
     GLOBAL_DECKS_TABLE: ${self:custom.globalDecksTable}
     GLOBAL_CARDS_TABLE: ${self:custom.globalCardsTable}
     CARD_SEARCH_DOMAIN_ENDPOINT: ${self:custom.cardSearchDomainEndpoint}
+    PRICES_BUCKET: ${self:custom.dailyPricesBucket}
     CARDS_URL: 'https://api.scryfall.com/cards?page={}'
     CARDS_PER_PAGE: 175
     PAGES_PER_WORKER: 100
-    BATCH_LIMIT: 10
+    DYNAMO_BATCH_LIMIT: 10
 
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
@@ -66,6 +67,10 @@ provider:
         - es:ESHttpHead
         # Lambda Actions (for master to call worker)
         - lambda:InvokeFunction
+        # S3 Actions
+        - s3:PutObject
+        - s3:GetObject
+        - s3:DeleteObject
       # Restrict our IAM role permissions to
       # the specific table for the stage
       Resource:
@@ -77,7 +82,7 @@ provider:
 functions:
   cards_master:
     handler: update_global_cards.master
-    memorySize: 512
+    memorySize: 256
     timeout: 900
     layers:
       - {Ref: PythonRequirementsLambdaLayer}
@@ -97,6 +102,31 @@ functions:
     events:
       - http:
           path: global_cards_worker
+          method: post
+          cors: true
+          authorizer: aws_iam
+  prices_master:
+    handler: record_daily_prices.master
+    memorySize: 256
+    timeout: 900
+    layers:
+      - {Ref: PythonRequirementsLambdaLayer}
+    events:
+      - schedule: cron(0 18 ? * * *)
+      - http:
+          path: daily_prices_master
+          method: get
+          cors: true
+          authorizer: aws_iam
+  prices_worker:
+    handler: record_daily_prices.worker
+    memorySize: 512
+    timeout: 900
+    layers:
+      - {Ref: PythonRequirementsLambdaLayer}
+    events:
+      - http:
+          path: daily_prices_worker
           method: post
           cors: true
           authorizer: aws_iam

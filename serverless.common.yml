@@ -12,6 +12,7 @@ custom:
   globalCardsTable: global-cards
   cardSearchDomainEndpoint:
     'Fn::ImportValue': CardSearchDomainEndpoint
+  dailyPricesBucket: global-prices
   pythonRequirements:
     layer:
       name: ${self:service}
