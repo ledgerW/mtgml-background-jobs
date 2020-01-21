@@ -56,7 +56,7 @@ def scryfall_to_dynamo(table, res):
 
 def scryfall_to_s3(bucket, start_page, prices_df):
     file_name = 'prices{}.json'.format(start_page)
-    df_loc = os.path.join(os.getcwd(), 'tmp', file_name)
+    df_loc = os.path.join('tmp', file_name)
     prices_df.to_json(df_loc, orient='records')
 
     today = pd.Timestamp.today()
