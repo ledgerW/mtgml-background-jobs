@@ -68,7 +68,7 @@ def scryfall_to_s3(bucket, start_page, prices_df):
     s3_file_name = '{}/{}'.format(today, file_name)
     s3_client = boto3.client('s3')
     try:
-        response = s3_client.put_object(Body=df_loc, Bucket=bucket, Key=s3_file_name)
+        response = s3_client.upload_file(df_loc, bucket, s3_file_name)
         status = True
     except:
         e = sys.exc_info()
