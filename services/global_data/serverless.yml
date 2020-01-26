@@ -71,6 +71,7 @@ provider:
         - s3:PutObject
         - s3:GetObject
         - s3:DeleteObject
+        - s3:ListBucket
       # Restrict our IAM role permissions to
       # the specific table for the stage
       Resource:
