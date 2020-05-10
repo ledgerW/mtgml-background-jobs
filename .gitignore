@@ -20,7 +20,8 @@ __pycache__/
 node_modules/
 
 data/
-.ipynp_checkpoints
+.ipynb_checkpoints
+notebooks/tfhub*
 services/global_data/tmp/
 
 # Dependency directories

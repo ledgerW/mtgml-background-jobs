@@ -5,8 +5,8 @@ sys.setrecursionlimit(100000)
 import os
 import boto3
 import pandas as pd
-from elasticsearch import Elasticsearch, RequestsHttpConnection
-from requests_aws4auth import AWS4Auth
+#from elasticsearch import Elasticsearch, RequestsHttpConnection
+#from requests_aws4auth import AWS4Auth
 import json
 import requests
 from time import sleep
@@ -76,7 +76,7 @@ def scryfall_to_s3(bucket, start_page, prices_df):
         status = False
     return status
 
-
+'''
 def scryfall_to_elastic(domain, res):
     if True:
         logger.info('Number of Records: {}'.format(len(event['Records'])))
@@ -104,3 +104,4 @@ def scryfall_to_elastic(domain, res):
             else:
                 document = record['dynamodb']['NewImage']
                 r = requests.put(url + id, auth=awsauth, json=document, headers=headers)
+'''

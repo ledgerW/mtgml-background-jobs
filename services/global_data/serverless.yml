@@ -34,7 +34,7 @@ provider:
     resources_stage: ${self:custom.resources_stage}
     GLOBAL_DECKS_TABLE: ${self:custom.globalDecksTable}
     GLOBAL_CARDS_TABLE: ${self:custom.globalCardsTable}
-    CARD_SEARCH_DOMAIN_ENDPOINT: ${self:custom.cardSearchDomainEndpoint}
+    #CARD_SEARCH_DOMAIN_ENDPOINT: ${self:custom.cardSearchDomainEndpoint}
     PRICES_BUCKET: ${self:custom.dailyPricesBucket}
     CARDS_URL: 'https://api.scryfall.com/cards?page={}'
     CARDS_PER_PAGE: 175
@@ -60,11 +60,11 @@ provider:
         - dynamodb:DescribeStream
         - dynamodb:ListStreams
         # Elasticsearch Actions
-        - es:ESHttpPost
-        - es:ESHttpPut
-        - es:ESHttpDelete
-        - es:ESHttpGet
-        - es:ESHttpHead
+        #- es:ESHttpPost
+        #- es:ESHttpPut
+        #- es:ESHttpDelete
+        #- es:ESHttpGet
+        #- es:ESHttpHead
         # Lambda Actions (for master to call worker)
         - lambda:InvokeFunction
         # S3 Actions
@@ -77,7 +77,7 @@ provider:
       Resource:
         - 'Fn::ImportValue': GlobalDecksTableArn
         - 'Fn::ImportValue': GlobalCardsTableArn
-        - 'Fn::ImportValue': CardSearchDomainArn
+        #- 'Fn::ImportValue': CardSearchDomainArn
         - 'Fn::ImportValue': PricesBucketArn
         - "*"
 
