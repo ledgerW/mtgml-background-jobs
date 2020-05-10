@@ -158,14 +158,3 @@ functions:
           method: get
           cors: true
           authorizer: aws_iam
-  sync_card_search:
-    handler: sync_card_search.main
-    memorySize: 512
-    timeout: 60
-    layers:
-      - {Ref: PythonRequirementsLambdaLayer}
-    events:
-      - stream:
-          type: dynamodb
-          arn:
-            Fn::ImportValue: GlobalCardsTableStreamArn

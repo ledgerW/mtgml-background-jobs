@@ -20,7 +20,7 @@ __pycache__/
 node_modules/
 
 data/
-.ipynp_checkpoints/
+.ipynp_checkpoints
 services/global_data/tmp/
 
 # Dependency directories

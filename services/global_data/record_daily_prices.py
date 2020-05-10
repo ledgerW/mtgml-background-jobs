@@ -85,6 +85,10 @@ def worker(event, context):
 
 
 def cleanup(event, context):
+    # TEMP TEMP TEMP #
+    return success({'result': 'success'})
+
+    '''
     bucket = os.environ['PRICES_BUCKET']
     tmp_loc = './tmp/prices.json'
 
@@ -117,3 +121,4 @@ def cleanup(event, context):
         status = False
 
     return success({'status': status})
+    '''
