@@ -5,8 +5,6 @@ sys.setrecursionlimit(100000)
 import os
 import boto3
 import pandas as pd
-#from elasticsearch import Elasticsearch, RequestsHttpConnection
-#from requests_aws4auth import AWS4Auth
 import json
 import requests
 from time import sleep
@@ -43,6 +41,7 @@ def scryfall_to_dynamo(table, res):
                 } for card in cards
             ]
         }
+
         try:
             dynamo_res = dynamodb_lib.call(table, 'batch_write_item', RequestItems)
             if len(dynamo_res['UnprocessedItems'])>0:
@@ -51,6 +50,7 @@ def scryfall_to_dynamo(table, res):
             e = sys.exc_info()[0]
             logger.info(page)
             logger.info(e)
+
     return res.json()['has_more']
 
 

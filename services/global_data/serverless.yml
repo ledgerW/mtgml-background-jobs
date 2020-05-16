@@ -1,9 +1,9 @@
 service: mtgml-global-data
 
 plugins:
-  - serverless-offline
-  - serverless-dotenv-plugin
   - serverless-python-requirements
+  - serverless-dotenv-plugin
+  - serverless-offline
 
 custom: ${file(../../serverless.common.yml):custom}
 

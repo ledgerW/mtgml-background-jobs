@@ -13,7 +13,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 from libs.response_lib import success, failure
-from libs.global_cards_lib import scryfall_to_dynamo, scryfall_to_elastic
+from libs.global_cards_lib import scryfall_to_dynamo
 
 
 CARDS_URL = os.environ['CARDS_URL']
@@ -21,7 +21,7 @@ CARDS_PER_PAGE = int(os.environ['CARDS_PER_PAGE'])
 PAGES_PER_WORKER = int(os.environ['PAGES_PER_WORKER'])
 BATCH_LIMIT = int(os.environ['DYNAMO_BATCH_LIMIT'])
 
-client = boto3.client('lambda')
+lambda_client = boto3.client('lambda')
 
 
 def master(event, context):
@@ -39,7 +39,7 @@ def master(event, context):
 
     for pages in worker_pages:
         logger.info(pages)
-        response = client.invoke(
+        response = lambda_client.invoke(
             FunctionName='mtgml-global-data-prod-cards_worker',
             InvocationType='Event',
             Payload=json.dumps({"first": pages[0], "last": pages[1]}))
@@ -55,7 +55,6 @@ def worker(event, context):
     then collect them and load to GLOBAL_CARDS_TABLE
     '''
     table = os.environ['GLOBAL_CARDS_TABLE']
-    domain = os.environ['CARD_SEARCH_DOMAIN_ENDPOINT']
     pages = event
 
     # Get cards from Scryfall
@@ -68,7 +67,10 @@ def worker(event, context):
             try:
                 has_more = scryfall_to_dynamo(table, page_res)
             except:
+                e = sys.exc_info()[0]
                 logger.info(page)
+                logger.info(e)
                 return failure({'status': False})
+
 
     return success({'status': True})

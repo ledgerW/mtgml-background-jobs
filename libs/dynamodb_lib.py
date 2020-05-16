@@ -1,12 +1,19 @@
 import boto3
+import os
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core import patch
 
 patch(['boto3'])
 
 def call(table, action, params):
-    client = boto3.client('dynamodb')
-    dynamodb = boto3.resource('dynamodb')
+    # check if running local for dev/testing
+    if os.getenv('IS_LOCAL'):
+        dynamodb = boto3.resource('dynamodb', region_name='localhost', endpoint_url='http://localhost:8000')
+        client = boto3.client('dynamodb', region_name='localhost', endpoint_url='http://localhost:8000')
+    else:
+        dynamodb = boto3.resource('dynamodb')
+        client = boto3.client('dynamodb')
+
     table = dynamodb.Table(table)
 
     try:
@@ -23,10 +30,11 @@ def call(table, action, params):
                                           ExpressionAttributeValues=params['ExpressionAttributeValues'],
                                           ReturnValues=params['ReturnValues'])
         elif action == 'batch_write_item':
-            return getattr(client, action)(RequestItems=params,
-                                           ReturnConsumedCapacity='TOTAL')
+            return getattr(client, action)(RequestItems=params)
     except Exception as e:
-        print(e)
+        e = sys.exc_info()[0]
+        logger.info(page)
+        logger.info(e)
         xray_recorder.end_subsegment()
 
 
