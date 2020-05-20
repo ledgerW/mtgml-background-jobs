@@ -10,15 +10,15 @@ custom: ${file(../../serverless.common.yml):custom}
 package:
   individually: true
   exclude:
-    - data/**
-    - notebooks/**
+    - tests/**
+    - mocks/**
   include:
     - ../../libs/**
 
 provider:
   name: aws
   runtime: python3.7
-  stage: prod
+  stage: dev
   region: us-east-1
   tracing:
     lambda: true
@@ -34,7 +34,6 @@ provider:
     resources_stage: ${self:custom.resources_stage}
     GLOBAL_DECKS_TABLE: ${self:custom.globalDecksTable}
     GLOBAL_CARDS_TABLE: ${self:custom.globalCardsTable}
-    #CARD_SEARCH_DOMAIN_ENDPOINT: ${self:custom.cardSearchDomainEndpoint}
     PRICES_BUCKET: ${self:custom.dailyPricesBucket}
     CARDS_URL: 'https://api.scryfall.com/cards?page={}'
     CARDS_PER_PAGE: 175
@@ -59,12 +58,6 @@ provider:
         - dynamodb:GetShardIterator
         - dynamodb:DescribeStream
         - dynamodb:ListStreams
-        # Elasticsearch Actions
-        #- es:ESHttpPost
-        #- es:ESHttpPut
-        #- es:ESHttpDelete
-        #- es:ESHttpGet
-        #- es:ESHttpHead
         # Lambda Actions (for master to call worker)
         - lambda:InvokeFunction
         # S3 Actions
@@ -75,10 +68,9 @@ provider:
       # Restrict our IAM role permissions to
       # the specific table for the stage
       Resource:
-        - 'Fn::ImportValue': GlobalDecksTableArn
-        - 'Fn::ImportValue': GlobalCardsTableArn
-        #- 'Fn::ImportValue': CardSearchDomainArn
-        - 'Fn::ImportValue': PricesBucketArn
+        - 'Fn::ImportValue': ${self:custom.stage}-GlobalDecksTableArn
+        - 'Fn::ImportValue': ${self:custom.stage}-GlobalCardsTableArn
+        - 'Fn::ImportValue': ${self:custom.stage}-PricesBucketArn
         - "*"
 
 functions:
@@ -89,7 +81,9 @@ functions:
     layers:
       - {Ref: PythonRequirementsLambdaLayer}
     events:
-      - schedule: cron(0 6 ? * FRI *)
+      - schedule:
+        rate: cron(0 6 ? * FRI *)
+        enabled: ${strToBool(${self:custom.cron_enabled.${self:custom.stage}})}
       - http:
           path: global_cards_master
           method: get
@@ -114,7 +108,9 @@ functions:
     layers:
       - {Ref: PythonRequirementsLambdaLayer}
     events:
-      - schedule: cron(0 18 * * ? *)
+      - schedule:
+        rate: cron(0 18 * * ? *)
+        enabled: ${strToBool(${self:custom.cron_enabled.${self:custom.stage}})}
       - http:
           path: daily_prices_master
           method: get
@@ -139,13 +135,15 @@ functions:
     layers:
       - {Ref: PythonRequirementsLambdaLayer}
     events:
-      - schedule: cron(10 18 * * ? *)
+      - schedule:
+        rate: cron(10 18 * * ? *)
+        enabled: ${strToBool(${self:custom.cron_enabled.${self:custom.stage}})}
       - http:
           path: daily_prices_cleanup
           method: get
           cors: true
           authorizer: aws_iam
-  decks:
+  decks_master:
     handler: update_global_decks.main
     memorySize: 512
     timeout: 900

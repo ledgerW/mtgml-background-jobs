@@ -40,7 +40,7 @@ def master(event, context):
     for pages in worker_pages:
         logger.info(pages)
         response = client.invoke(
-            FunctionName='mtgml-global-data-prod-prices_worker',
+            FunctionName='mtgml-global-data-{}-prices_worker'.format(STAGE),
             InvocationType='Event',
             Payload=json.dumps({"first": pages[0], "last": pages[1]}))
 

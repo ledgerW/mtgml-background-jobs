@@ -7,10 +7,14 @@ custom:
     dev: dev
   resources_stage: ${self:custom.resources_stages.${self:custom.stage}, self:custom.resources_stages.prod}
 
+  cron_enabled:
+    dev: false
+    prod: true
+
   # Set the table name here so we can use it while testing locally
-  globalDecksTable: global-decks
-  globalCardsTable: global-cards
-  dailyPricesBucket: global-prices
+  globalDecksTable: ${self:custom.stage}-global-decks
+  globalCardsTable: ${self:custom.stage}-global-cards
+  dailyPricesBucket: ${self:custom.stage}-global-prices
   #cardSearchDomainEndpoint:
   #  'Fn::ImportValue': CardSearchDomainEndpoint
   pythonRequirements:

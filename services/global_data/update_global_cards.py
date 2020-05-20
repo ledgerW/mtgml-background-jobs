@@ -40,7 +40,7 @@ def master(event, context):
     for pages in worker_pages:
         logger.info(pages)
         response = lambda_client.invoke(
-            FunctionName='mtgml-global-data-prod-cards_worker',
+            FunctionName='mtgml-global-data-{}-cards_worker'.format(STAGE),
             InvocationType='Event',
             Payload=json.dumps({"first": pages[0], "last": pages[1]}))
 
