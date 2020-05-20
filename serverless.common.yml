@@ -8,8 +8,8 @@ custom:
   resources_stage: ${self:custom.resources_stages.${self:custom.stage}, self:custom.resources_stages.prod}
 
   cron_enabled:
-    dev: 0
-    prod: 1
+    dev: false
+    prod: true
 
   # Set the table name here so we can use it while testing locally
   globalDecksTable: ${self:custom.stage}-global-decks

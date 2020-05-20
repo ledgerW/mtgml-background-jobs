@@ -83,7 +83,7 @@ functions:
     events:
       - schedule:
         rate: cron(0 6 ? * FRI *)
-        enabled: ${strToBool(${self:custom.cron_enabled.${self:custom.stage}})}
+        enabled: ${self:custom.cron_enabled.${self:custom.stage}}
       - http:
           path: global_cards_master
           method: get
@@ -110,7 +110,7 @@ functions:
     events:
       - schedule:
         rate: cron(0 18 * * ? *)
-        enabled: ${strToBool(${self:custom.cron_enabled.${self:custom.stage}})}
+        enabled: ${self:custom.cron_enabled.${self:custom.stage}}
       - http:
           path: daily_prices_master
           method: get
@@ -137,7 +137,7 @@ functions:
     events:
       - schedule:
         rate: cron(10 18 * * ? *)
-        enabled: ${strToBool(${self:custom.cron_enabled.${self:custom.stage}})}
+        enabled: ${self:custom.cron_enabled.${self:custom.stage}}
       - http:
           path: daily_prices_cleanup
           method: get
